@@ -1,0 +1,53 @@
+
+
+stages:
+  - prepare
+  - models
+  - build
+  - deploy
+
+fetch-data:
+  stage: prepare
+  image: ubuntu:22.04
+  variables:
+    DATA_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
+  before_script:
+    - apt update && apt install -y wget
+  script:
+    - wget -O dataset.zip $DATA_URL
+    - unzip -p dataset.zip >dataset.json
+    - rm dataset.zip
+  artifacts:
+    name: 'dataset.json'
+    paths:
+      - ./dataset.json
+
+prepare-data:
+  stage: prepare
+  image: registry.90victor09.ru/90victor09/ai-arch/base:latest
+  needs:
+    - job: fetch-data
+      artifacts: true
+  variables: {}
+  script:
+    - prepare-data.py ./dataset.json ./output.json
+  artifacts:
+    name: 'output.json'
+    paths:
+      - ./output.json
+
+save-data:
+  stage: prepare
+  image: registry.90victor09.ru/90victor09/ai-arch/base:latest
+  needs:
+    - job: prepare-data
+      artifacts: true
+  variables:
+    DB_HOST: "${SECRET_DB_HOST}"
+    DB_PORT: "${SECRET_DB_PORT}"
+    DB_DB: "${SECRET_DB_DB}"
+    DB_USER: "${SECRET_DB_USER}"
+    DB_PASS: "${SECRET_DB_PASS}"
+  script:
+    - save-data.py ./output.json
+
