@@ -8,6 +8,7 @@ import psycopg2.extras
 
 
 TABLE_NAME = 'dataset'
+CLASSES_TABLE_NAME = 'classes'
 
 def connect():
     conn = psycopg2.connect(
