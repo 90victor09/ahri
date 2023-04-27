@@ -1,0 +1,104 @@
+name: Ahri pipeline
+
+on:
+  push:
+    branches: [ $default-branch ]
+  workflow_call:
+    inputs:
+      models: &models
+        - tfidf.SVCModel
+        - tfidf.KNNModel
+        - tfidf.MultinomialNBModel
+        - tfidf.RandomForestModel
+
+jobs:
+  env:
+    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
+#    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
+#    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
+
+  dataset:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: cache source data
+        id: cache-source-data
+        uses: actions/cache@v3
+        with:
+          path: dataset.json
+          key: source-dataset-$(DATASET_URL)
+
+      - name: download source data
+        if: steps.cache-source-data.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get install -y wget unzip
+          wget -O dataset.zip $DATASET_URL
+          unzip -p dataset.zip >dataset.json
+          rm dataset.zip
+
+  save-data:
+    runs-on: ubuntu-22.04
+    needs: dataset
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: cache source data
+        id: cache-source-data
+        uses: actions/cache@v3
+        with:
+          path: dataset.json
+          key: source-dataset-$(DATASET_URL)
+
+      - &prepare-env
+        name: Prepare environment
+        run: |
+          sudo apt install -y python3 python3-pip
+          pip install -r requirements.txt
+
+      - name: Prepare data
+        run: |
+          prepare-data.py ./dataset.json ./output.json
+
+      - name: Upload data
+        env: &db-creds
+          DB_HOST: $({ secrets.DB_HOST })
+          DB_PORT: $({ secrets.DB_PORT })
+          DB_DB: $({ secrets.DB_DB })
+          DB_USER: $({ secrets.DB_USER })
+          DB_PASS: $({ secrets.DB_PASS })
+        run: |
+          ./save-data.py ./output.json
+
+  train-models:
+    runs-on: ubuntu-22.04
+    needs: save-data
+
+    strategy:
+      fail-fast: false
+      matrix:
+        model: *models
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - *prepare-env
+
+      - name: Train model $({ matrix.model })
+        env: *db-creds
+        run: |
+          ./train-model.py $({ matrix.model })
+
+  select-model:
+    runs-on: ubuntu-22.04
+    needs: train-models
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - *prepare-env
+
+      - name: Select model
+        env: *db-creds
+        run: |
+          ./select-model.py $({ join(inputs.models, ' ') })

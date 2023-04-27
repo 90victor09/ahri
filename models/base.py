@@ -10,9 +10,11 @@ class BaseModel:
         pass
 
     def load(self, fp):
+        fp.seek(0)
         self.classifier = decompress_pickle(fp.read())
 
     def save(self, fp):
+        fp.seek(0)
         fp.write(compress_pickle(self.classifier))
 
     def train(self, X, y):

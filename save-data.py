@@ -17,10 +17,10 @@ src_path = sys.argv[1]
 recreate = True if len(sys.argv) == 3 and sys.argv[2] == 'true' else False
 
 with database.connect() as conn:
-    classes = {}
+    classes = database.retrieve_classes(conn)
 
     def process_data():
-        i = 1
+        i = max(classes.values() or [0]) + 1
         for obj in json_lines_parser(src_path):
             yield obj
             if obj['category'] in classes:
@@ -30,6 +30,9 @@ with database.connect() as conn:
 
     if not database.is_data_table_exists(conn) or recreate:
         database.create_data_table(conn)
+    if not database.is_classes_table_exists(conn) or recreate:
+        database.create_classes_table(conn)
     database.save_data(conn, process_data())
+    print(classes)
     database.save_classes(conn, classes)
 

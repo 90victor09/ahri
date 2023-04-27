@@ -89,7 +89,14 @@ def remove_stopwords(text):
 
     global stopwords_exclude
     if not stopwords_exclude:
-        stopwords_exclude = stopwords.words('english')
+        try:
+            stopwords_exclude = stopwords.words('english')
+            word_tokenize("a")
+        except LookupError:
+            import nltk
+            nltk.download('punkt')
+            nltk.download('stopwords')
+            stopwords_exclude = stopwords.words('english')
 
     s = ""
     for w in word_tokenize(text):

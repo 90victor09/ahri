@@ -13,13 +13,17 @@ if len(sys.argv) < 2:
 model_name = sys.argv[1]
 dataset_version = None
 if len(sys.argv) > 2:
-    dataset_version = sys.argv[2]
+    dataset_version = int(sys.argv[2])
 
 import tempfile
 import json
+import logging
 
 from util.imp_helper import import_class
 from util import database
+
+log = logging.getLogger(__name__)
+log.setLevel(logging.INFO)
 
 with database.connect() as conn:
     classes = database.retrieve_classes(conn)
@@ -33,28 +37,33 @@ with database.connect() as conn:
         with conn.cursor() as cursor:
             dataset_version = database.get_last_dataset_version(cursor)
 
+    trained_dataset_version = 1
     current_dataset_version = database.get_model_dataset_version(conn, model_name)
     if current_dataset_version is not None:
-        with tempfile.TemporaryFile('wb') as fp:
+        with tempfile.TemporaryFile('w+b') as fp:
             trained_dataset_version = database.retrieve_model(conn, model_name, fp, None)
             if trained_dataset_version >= dataset_version:
-                print("Model already trained on these dataset (%s >= %s)" % (trained_dataset_version, dataset_version))
+                log.info("Model already trained on these dataset versions (%s >= %s)" % (trained_dataset_version, dataset_version))
                 exit(0)
 
             model.load(fp)
+            log.info("Loaded existing model")
     else:
         model.create_new()
+        log.info("Creating new model")
 
-    for chunk in database.retrieve_data_chunks(conn, dataset_version):
-        X, y = [], []
+    for dver in range(trained_dataset_version, dataset_version+1):
+        log.info(f"Loading dataset version={dver}")
+        for chunk in database.retrieve_data_chunks(conn, dver):
+            X, y = [], []
 
-        for id, data, hash, ver in chunk:
-            obj = json.loads(data)
-            X.append(obj['short_description'])
-            y.append(list(classes.keys())[list(classes.values()).index(obj['category'])])
+            for _id, data, _hash, ver in chunk:
+                obj = json.loads(data)
+                X.append(obj['short_description'])
+                y.append(classes[obj['category']])
 
-        model.train(X, y)
+            model.train(X, y)
 
-    with tempfile.TemporaryFile('wb') as fp:
+    with tempfile.TemporaryFile('w+b') as fp:
         model.save(fp)
         database.save_model(conn, model_name, dataset_version, fp)

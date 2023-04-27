@@ -1,7 +1,8 @@
 import json
 import pickle
 
-import zstandard
+import zstandard as zstd
+
 
 def json_lines_parser(path):
     with open(path, 'r') as fp:
@@ -22,8 +23,8 @@ def chunkify(d, target_len=500):
 
 
 def compress_pickle(obj):
-    zstandard.compress(pickle.dumps(obj))
+    return zstd.compress(pickle.dumps(obj, protocol=5))
 
 
 def decompress_pickle(s):
-    return zstandard.decompress(pickle.loads(s))
+    return pickle.loads(zstd.decompress(s))

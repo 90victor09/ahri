@@ -5,7 +5,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 
-from base import BaseModel
+from .base import BaseModel
 
 
 class SVCModel(BaseModel):
