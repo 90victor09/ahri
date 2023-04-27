@@ -32,7 +32,11 @@ jobs:
 
   save-data:
     runs-on: ubuntu-22.04
-    container: ghcr.io/90victor09/ahri/base:latest
+    container:
+      image: ghcr.io/90victor09/ahri/base:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
     needs: dataset
 
     steps:
@@ -61,7 +65,11 @@ jobs:
 
   train-models:
     runs-on: ubuntu-22.04
-    container: ghcr.io/90victor09/ahri/base:latest
+    container:
+      image: ghcr.io/90victor09/ahri/base:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
     needs: save-data
 
     strategy:
@@ -88,7 +96,11 @@ jobs:
 
   select-model:
     runs-on: ubuntu-22.04
-    container: ghcr.io/90victor09/ahri/base:latest
+    container:
+      image: ghcr.io/90victor09/ahri/base:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.github_token }}
     needs: train-models
 
     steps:
