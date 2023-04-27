@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# noinspection DuplicatedCode
 if __name__ != '__main__':
     exit(1)
 
@@ -10,11 +11,9 @@ if len(sys.argv) < 2:
     exit(0)
 
 
-import shutil
-
 import json
 
-from util.json import lines_parser
+from util.data import json_lines_parser
 from util.text_preprocess import *
 
 src_path = sys.argv[1]
@@ -22,7 +21,7 @@ dst_path = sys.argv[2]
 
 
 with open(dst_path, 'w') as dst:
-    for obj in lines_parser(src_path):
+    for obj in json_lines_parser(src_path):
         if not obj['short_description'] or not obj['category']:
             continue
 
@@ -31,7 +30,7 @@ with open(dst_path, 'w') as dst:
             replace_chars,
             remove_shortforms,
             trim_punctuation,
-            #remove_stopwords,
+            remove_stopwords,
         ]
 
         for transform in pipeline:
