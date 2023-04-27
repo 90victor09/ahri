@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dataset.json
-          key: source-dataset-$({ env.DATASET_URL })
+          key: source-dataset-${{ env.DATASET_URL }}
 
       - name: download source data
         if: steps.cache-source-data.outputs.cache-hit != 'true'
@@ -31,6 +31,7 @@ jobs:
 
   save-data:
     runs-on: ubuntu-22.04
+    container: ghcr.io/90victor09/ahri/base:latest
     needs: dataset
 
     steps:
@@ -41,12 +42,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dataset.json
-          key: source-dataset-$({ env.DATASET_URL })
-
-      - name: Prepare environment
-        run: |
-          sudo apt install -y python3 python3-pip
-          pip install -r requirements.txt
+          key: source-dataset-${{ env.DATASET_URL }}
 
       - name: Prepare data
         run: |
@@ -54,16 +50,17 @@ jobs:
 
       - name: Upload data
         env:
-          DB_HOST: $({ secrets.DB_HOST })
-          DB_PORT: $({ secrets.DB_PORT })
-          DB_DB: $({ secrets.DB_DB })
-          DB_USER: $({ secrets.DB_USER })
-          DB_PASS: $({ secrets.DB_PASS })
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DB: ${{ secrets.DB_DB }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
         run: |
           ./save-data.py ./output.json
 
   train-models:
     runs-on: ubuntu-22.04
+    container: ghcr.io/90victor09/ahri/base:latest
     needs: save-data
 
     strategy:
@@ -78,39 +75,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Prepare environment
-        run: |
-          sudo apt install -y python3 python3-pip
-          pip install -r requirements.txt
-
-      - name: Train model $({ matrix.model })
+      - name: Train model ${{ matrix.model }}
         env:
-          DB_HOST: $({ secrets.DB_HOST })
-          DB_PORT: $({ secrets.DB_PORT })
-          DB_DB: $({ secrets.DB_DB })
-          DB_USER: $({ secrets.DB_USER })
-          DB_PASS: $({ secrets.DB_PASS })
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DB: ${{ secrets.DB_DB }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
         run: |
-          ./train-model.py $({ matrix.model })
+          ./train-model.py ${{ matrix.model }}
 
   select-model:
     runs-on: ubuntu-22.04
+    container: ghcr.io/90victor09/ahri/base:latest
     needs: train-models
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Prepare environment
-        run: |
-          sudo apt install -y python3 python3-pip
-          pip install -r requirements.txt
-
       - name: Select model
         env:
-          DB_HOST: $({ secrets.DB_HOST })
-          DB_PORT: $({ secrets.DB_PORT })
-          DB_DB: $({ secrets.DB_DB })
-          DB_USER: $({ secrets.DB_USER })
-          DB_PASS: $({ secrets.DB_PASS })
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DB: ${{ secrets.DB_DB }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
         run: |
-          ./select-model.py $({ join(jobs.train-models.strategy.matrix.model, ' ') })
+          ./select-model.py ${{ join(jobs.train-models.strategy.matrix.model, ' ') }}
