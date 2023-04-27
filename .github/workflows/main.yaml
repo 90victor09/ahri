@@ -3,20 +3,13 @@ name: Ahri pipeline
 on:
   push:
     branches: [ $default-branch, ci ]
-  workflow_dispatch:
-    inputs:
-      models: &models
-        - tfidf.SVCModel
-        - tfidf.KNNModel
-        - tfidf.MultinomialNBModel
-        - tfidf.RandomForestModel
+
+env:
+  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
+#  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
+#  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
 
 jobs:
-  env:
-    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
-#    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
-#    DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
-
   dataset:
     runs-on: ubuntu-22.04
 
@@ -77,7 +70,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        model: *models
+        model:
+          - tfidf.SVCModel
+          - tfidf.KNNModel
+          - tfidf.MultinomialNBModel
+          - tfidf.RandomForestModel
 
     steps:
       - uses: actions/checkout@v3
@@ -101,4 +98,4 @@ jobs:
       - name: Select model
         env: *db-creds
         run: |
-          ./select-model.py $({ join(inputs.models, ' ') })
+          ./select-model.py $({ join(jobs.train-models.strategy.matrix.model, ' ') })
