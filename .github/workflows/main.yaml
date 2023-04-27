@@ -43,8 +43,7 @@ jobs:
           path: dataset.json
           key: source-dataset-$(DATASET_URL)
 
-      - &prepare-env
-        name: Prepare environment
+      - name: Prepare environment
         run: |
           sudo apt install -y python3 python3-pip
           pip install -r requirements.txt
@@ -79,7 +78,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - *prepare-env
+      - name: Prepare environment
+        run: |
+          sudo apt install -y python3 python3-pip
+          pip install -r requirements.txt
 
       - name: Train model $({ matrix.model })
         env: *db-creds
@@ -93,7 +95,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - *prepare-env
+      - name: Prepare environment
+        run: |
+          sudo apt install -y python3 python3-pip
+          pip install -r requirements.txt
 
       - name: Select model
         env: *db-creds
