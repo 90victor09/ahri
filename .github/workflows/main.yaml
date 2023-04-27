@@ -2,8 +2,8 @@ name: Ahri pipeline
 
 on:
   push:
-    branches: [ $default-branch ]
-  workflow_call:
+    branches: [ $default-branch, ci ]
+  workflow_dispatch:
     inputs:
       models: &models
         - tfidf.SVCModel
