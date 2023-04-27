@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dataset.json
-          key: source-dataset-$(DATASET_URL)
+          key: source-dataset-$({ env.DATASET_URL })
 
       - name: download source data
         if: steps.cache-source-data.outputs.cache-hit != 'true'
@@ -41,7 +41,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: dataset.json
-          key: source-dataset-$(DATASET_URL)
+          key: source-dataset-$({ env.DATASET_URL })
 
       - name: Prepare environment
         run: |
@@ -50,7 +50,7 @@ jobs:
 
       - name: Prepare data
         run: |
-          prepare-data.py ./dataset.json ./output.json
+          ./prepare-data.py ./dataset.json ./output.json
 
       - name: Upload data
         env:
