@@ -96,7 +96,8 @@ def create_classes_table(conn):
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {CLASSES_TABLE_NAME} (
                 id bigint NOT NULL PRIMARY KEY,
-                name varchar(255) NOT NULL
+                name varchar(255) NOT NULL,
+                CONSTRAINT classes_uniq UNIQUE (id, name)
             )
         """)
     conn.commit()
@@ -106,7 +107,7 @@ def save_classes(conn, classes_dict):
     with conn.cursor() as cursor:
         psycopg2.extras.execute_values(
             cursor,
-            f"INSERT INTO {CLASSES_TABLE_NAME} (id, name) VALUES %s",
+            f"INSERT INTO {CLASSES_TABLE_NAME} (id, name) VALUES %s ON CONFLICT ON CONSTRAINT classes_uniq DO NOTHING;",
             [(idx, name) for name, idx in classes_dict.items()]
         )
     conn.commit()
