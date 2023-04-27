@@ -8,6 +8,7 @@ env:
   DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
 #  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
 #  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
+  MODELS: tfidf.SVCModel tfidf.KNNModel tfidf.MultinomialNBModel tfidf.RandomForestModel
 
 jobs:
   dataset:
@@ -101,4 +102,4 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
         run: |
-          ./select-model.py ${{ join(jobs.train-models.strategy.matrix.model, ' ') }}
+          ./select-model.py ${{ env.MODELS }}
