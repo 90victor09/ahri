@@ -57,6 +57,7 @@ jobs:
 
       - name: Prepare data
         run: |
+          ln -s /root/nltk_data /github/home/nltk_data 
           ./prepare-data.py ./dataset.json ./output.json
 
       - name: Upload data

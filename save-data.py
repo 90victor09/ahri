@@ -33,6 +33,6 @@ with database.connect() as conn:
     if not database.is_classes_table_exists(conn) or recreate:
         database.create_classes_table(conn)
     database.save_data(conn, process_data())
-    print(classes)
+    # print(classes)
     database.save_classes(conn, classes)
 
