@@ -22,8 +22,9 @@ import logging
 from util.imp_helper import import_class
 from util import database
 
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
+from util.log import getLogger
+
+log = getLogger(__name__)
 
 with database.connect() as conn:
     classes = database.retrieve_classes(conn)
