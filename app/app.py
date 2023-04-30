@@ -21,6 +21,7 @@ if __package__ is None:
 
 from util import database
 from util.imp_helper import import_class
+from util.log import getLogger
 
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
@@ -29,8 +30,7 @@ conn = database.connect()
 model_name = None
 model = None
 
-log = logging.getLogger(__name__) if __name__ != '__main__' else logging.root
-log.setLevel(logging.INFO)
+log = getLogger(__name__)
 
 
 def _check_conn():
