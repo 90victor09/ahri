@@ -30,6 +30,12 @@ jobs:
           unzip -p dataset.zip >dataset.json
           rm dataset.zip
 
+      - name: Save source dataset
+        uses: actions/upload-artifact@v3
+        with:
+          name: source-dataset
+          path: ./dataset.json
+
   save-data:
     runs-on: ubuntu-22.04
     container:
@@ -42,12 +48,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: cache source data
-        id: cache-source-data
-        uses: actions/cache@v3
+      - name: Download source dataset
+        uses: actions/download-artifact@v3
         with:
-          path: dataset.json
-          key: source-dataset-${{ env.DATASET_URL }}
+          name: source-dataset
+          path: ./
 
       - name: Prepare data
         run: |
