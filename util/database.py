@@ -80,7 +80,7 @@ def save_data(conn, data):
             conn.commit()
 
 
-def retrieve_data_chunks(conn, version=None, chunk_size=500):
+def retrieve_data_chunks(conn, version=None, chunk_size=5000):
     with conn.cursor(name='retrieve') as cursor:
         cursor.execute(f'SELECT id, data, hash, ver FROM {DATASET_TABLE_NAME}' + ('' if version is None else f' WHERE ver = {version}'))
 
@@ -125,17 +125,24 @@ def create_models_table(conn):
             CREATE TABLE IF NOT EXISTS {MODELS_TABLE_NAME} (
                 id bigserial PRIMARY KEY,
                 name varchar(255) NOT NULL,
+                type varchar(255) NOT NULL,
+                params TEXT NOT NULL,
                 dataset_version bigint NOT NULL,
-                data bytea NOT NULL
+                data bytea NOT NULL,
+                CONSTRAINT models_uniq UNIQUE (name, dataset_version)
             )
         """)
     conn.commit()
 
 
-def save_model(conn, name, dataset_version, file):
+class ModelNotFoundException(Exception):
+    pass
+
+
+def save_model(conn, model_type, name, params, dataset_version, file):
     file.seek(0)
     with conn.cursor() as cursor:
-        cursor.execute(f'INSERT INTO {MODELS_TABLE_NAME}(name, dataset_version, data) VALUES (%s, %s, %s)', (name, dataset_version, file.read()))
+        cursor.execute(f'INSERT INTO {MODELS_TABLE_NAME}(name, type, params, dataset_version, data) VALUES (%s, %s, %s, %s, %s)', (name, model_type, json.dumps(params), dataset_version, file.read()))
     conn.commit()
 
 
@@ -149,14 +156,19 @@ def retrieve_model(conn, name, file, dataset_version=None):
     file.seek(0)
     with conn.cursor() as cursor:
         if dataset_version is not None:
-            cursor.execute(f'SELECT data, dataset_version FROM {MODELS_TABLE_NAME} WHERE name = %s AND dataset_version = %s', (name, dataset_version))
+            cursor.execute(f'SELECT type, data, dataset_version FROM {MODELS_TABLE_NAME} WHERE name = %s AND dataset_version = %s', (name, dataset_version))
         else:
-            cursor.execute(f'SELECT data, dataset_version FROM {MODELS_TABLE_NAME} WHERE name = %s ORDER BY dataset_version DESC LIMIT 1', (name,))
+            cursor.execute(f'SELECT type, data, dataset_version FROM {MODELS_TABLE_NAME} WHERE name = %s ORDER BY dataset_version DESC LIMIT 1', (name,))
 
-        ret = cursor.fetchall()[0]
-        data = ret[0]
-        dataset_version = ret[1]
+        ret = cursor.fetchall()
+        if len(ret) == 0:
+            raise ModelNotFoundException(f"Model with name={name} not found")
+        ret = ret[0]
+
+        model_type = ret[0]
+        data = ret[1]
+        dataset_version = ret[2]
         file.write(data)
 
     conn.commit()
-    return dataset_version
+    return model_type, dataset_version
