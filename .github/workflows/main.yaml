@@ -4,15 +4,14 @@ on:
   push:
     branches: [ $default-branch, ci ]
 
-env:
-  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
-#  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
-#  DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
-  MODELS: tfidf.SVCModel tfidf.KNNModel tfidf.MultinomialNBModel tfidf.RandomForestModel
-
 jobs:
   dataset:
     runs-on: ubuntu-22.04
+
+    env:
+#      DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset.json.zip
+#      DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v2.json.zip
+      DATASET_URL: https://90victor09.ru/aiarch/News_Category_Dataset_v3.json.zip
 
     steps:
       - name: cache source data
@@ -84,11 +83,16 @@ jobs:
       fail-fast: false
       matrix:
         model:
-          - tfidf.SVCModel
-          - tfidf.KNNModel
-          - tfidf.MultinomialNBModel
-          - tfidf.RandomForestModel
-
+          - tfidf.SVCModel tfidf_svc
+          - tfidf.MultinomialNBModel tfidf_nb
+          - |
+            tfidf.DecisionTreeClassifierModel tfidf_dt 0 '{"DecisionTreeClassifier__random_state": 42, "DecisionTreeClassifier__min_samples_leaf": 30}'
+          - |
+            tfidf.OneVsRestSVCModel tfidf_ovr_svc
+#          - |
+#            tfidf.KNNModel tfidf_knn 0 '{"KNN__n_neighbors": 41}'
+#          - |
+#            tfidf.RandomForestModel tfidf_rf 0 '{"RandomForestClassifier__random_state": 42, "RandomForestClassifier__verbose": true}'
     steps:
       - uses: actions/checkout@v3
 
@@ -104,6 +108,14 @@ jobs:
 
   select-model:
     runs-on: ubuntu-22.04
+
+    env:
+      MODELS: >-
+        tfidf_svc
+        tfidf_nb
+        tfidf_dt
+        tfidf_ovr_svc
+
     container:
       image: ghcr.io/90victor09/ahri/base:latest
       credentials:

@@ -20,7 +20,7 @@ if __package__ is None:
         pass
 
 from util import database
-from util.imp_helper import import_class
+from util.imp_helper import create_model
 from util.log import getLogger
 
 app = Flask(__name__)
@@ -52,8 +52,8 @@ def _load_model(name):
 
     model_name = name
     with tempfile.TemporaryFile('w+b') as fp:
-        model = import_class(f'models.{model_name}')()
-        dataset_version = database.retrieve_model(conn, model_name, fp)
+        model_type, dataset_version = database.retrieve_model(conn, model_name, fp)
+        model = create_model(model_type)
         model.load(fp)
         log.info(f"Loaded model '{model_name}', dataset_version={dataset_version}")
         return True
