@@ -1,0 +1,30 @@
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+#    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: ahri.90victor09.ru
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ahri.90victor09.ru-tls
+      hosts:
+        - ahri.90victor09.ru
+
+resources:
+  limits: &res
+    cpu: 50m
+    memory: 128M
+  requests: *res
+
+
+#db:
+#  host: ''
+#  port: ''
+#  db: ''
+#  user: ''
+#  pass: ''
+#
+#apiKey: ''

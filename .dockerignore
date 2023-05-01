@@ -1,3 +1,11 @@
+**/*.json
+**/.env
+**/__pycache__
+**/.idea
+**/*.egg-info
+
 .git/
 venv/
-app/helm/
+app/helm*/
+.env
+*.Dockerfile

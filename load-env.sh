@@ -1,3 +1,3 @@
 #!/bin/sh
 
-eval "export $(echo $(cat .env))"
+eval "export $(echo $(cat .env | grep -vE "^#"))"

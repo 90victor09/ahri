@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import itertools
 import time
 from functools import partial
 
@@ -99,7 +98,7 @@ with database.connect() as conn:
     log.info(f"Adjusted scores: {adjusted_scores}")
 
     best_model = max(adjusted_scores.items(), key=lambda x: x[1])
-    log.info(f"Best model: {best_model}")
+    log.info(f"Best model: {best_model[0]}")
 
 
 

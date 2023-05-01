@@ -135,4 +135,15 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
         run: |
-          ./select-model.py ${{ env.MODELS }}
+          ./select-model.py ${{ env.MODELS }} | tee /tmp/selection.out
+
+      - name: Deploy model
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_DB: ${{ secrets.DB_DB }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+        run: |
+          MODEL=$(cat /tmp/selection.out | tail -n1 | grep -oP "Best model: \K(.+)$")
+          ./deploy-model.py $MODEL

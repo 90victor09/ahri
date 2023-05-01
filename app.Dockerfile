@@ -1,9 +1,11 @@
 FROM ghcr.io/90victor09/ahri/base:latest
 
-RUN pip3 install uwsgi==2.0.20
+RUN pip3 install uwsgi==2.0.21
 
 COPY . /app
 WORKDIR /app
+
+RUN pip3 install -e /app
 
 EXPOSE 5000
 CMD uwsgi \

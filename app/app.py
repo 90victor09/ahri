@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import logging
 import os
 import sys
 import tempfile
@@ -59,13 +58,18 @@ def _load_model(name):
         return True
 
 
+if 'APP_API_KEY' not in os.environ:
+    log.error("Specify APP_API_KEY env var")
+    exit(1)
+api_key = os.environ['APP_API_KEY']
+
 if 'APP_DEFAULT_MODELNAME' in os.environ:
     _load_model(os.environ['APP_DEFAULT_MODELNAME'])
 else:
     log.info("No model loaded, set APP_DEFAULT_MODELNAME env var")
 
 
-@app.route('/healthcheck')
+@app.get('/healthcheck')
 def healthcheck():
     global conn
     if _check_conn():
@@ -80,9 +84,15 @@ def healthcheck():
         return Response("db check failed", status=500, mimetype='text/plain')
 
 
-@app.route('/api/models/load')
+@app.post('/api/models/load')
 def load_model():
     params = dict(request.args)
+
+    if 'api_key' not in params or params['api_key'] != api_key:
+        return Response({"error": "Unauthorized"}, 403)
+
+    if 'model_name' not in params:
+        return Response({"error": "Param model_name is required"}, 400)
 
     global model_name, model
     if not _load_model(params['model_name']):
@@ -91,10 +101,10 @@ def load_model():
     return {"result": "ok"}
 
 
-@app.route('/api/classify')
+@app.post('/api/classify')
 def classify():
     if model is None:
-        return Response({"error": "Model not loaded"}, 500)
+        return Response({"error": "Model is not loaded"}, 500)
 
     params = dict(request.json)
     if 'text' not in params:

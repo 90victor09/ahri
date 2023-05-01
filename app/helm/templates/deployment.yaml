@@ -1,0 +1,83 @@
+{{ $secretName := $.Values.secretName | default (printf "%s-secrets" (include "ahri.fullname" .)) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ahri.fullname" . }}
+  labels:
+    {{- include "ahri.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "ahri.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "ahri.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "ahri.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: host, optional: false }
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: port, optional: false }
+            - name: DB_DB
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: db, optional: false }
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: user, optional: false }
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: pass, optional: false }
+
+            - name: APP_API_KEY
+              valueFrom:
+                secretKeyRef: { name: {{ $secretName | quote }}, key: apiKey, optional: false }
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /healthcheck
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
