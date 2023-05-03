@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import tempfile
 import time
+import sys
 from functools import partial
 
 from sklearn import metrics
 
-from util.data import flatmap, chunk_to_labelresult_pair
+from util import database
 from util.imp_helper import create_model
 from util.log import getLogger
 
@@ -12,18 +14,12 @@ from util.log import getLogger
 if __name__ != '__main__':
     exit(1)
 
-import sys
-
 if len(sys.argv) < 2:
     print(f"{sys.argv[0]} MODEL_NAME [...]")
     exit(0)
 
 model_names = list(sys.argv)
 model_names = model_names[1:]
-
-import tempfile
-
-from util import database
 
 log = getLogger(__name__)
 
@@ -36,10 +32,10 @@ log = getLogger(__name__)
 
 with database.connect() as conn:
     X, y_true = [], []
-    classes = database.retrieve_classes(conn)
+    classes = database.classes.retrieve_classes(conn)
 
     log.info(f"Started loading complete dataset")
-    for _x, _y in map(partial(chunk_to_labelresult_pair, classes), flatmap(database.retrieve_data_chunks(conn))):
+    for _x, _y in database.dataset.retrieve_full_dataset(conn, classes):
         X.append(_x)
         y_true.append(_y)
     log.info(f"Completed loading dataset")
@@ -55,8 +51,8 @@ with database.connect() as conn:
     for model_name in model_names:
         with tempfile.TemporaryFile('w+b') as fp:
             try:
-                model_type, trained_dataset_version = database.retrieve_model(conn, model_name, fp, None)
-            except database.ModelNotFoundException:
+                model_type, trained_dataset_version = database.models.retrieve_model(conn, model_name, fp, None)
+            except database.models.ModelNotFoundException:
                 log.warning(f"Model '{model_name}' not found")
                 continue
 

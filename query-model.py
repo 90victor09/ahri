@@ -17,30 +17,21 @@ if 'APP_API_BASE' not in os.environ:
     log.error("APP_API_BASE env var should be specified")
     exit(1)
 
-if 'APP_API_KEY' not in os.environ:
-    log.error("APP_API_KEY env var should be specified")
-    exit(1)
-
-
 if len(sys.argv) < 2:
-    print(f"{sys.argv[0]} MODEL_NAME")
+    print(f"{sys.argv[0]} QUERY [...]")
     exit(1)
 
 api_base = os.environ['APP_API_BASE'].rstrip('/')
-api_key = os.environ['APP_API_KEY']
 
-model_name = sys.argv[1]
+queries = sys.argv[1::]
 
-resp = requests.post(f"{api_base}/api/models/load", params={
-    'api_key': api_key,
-    'model_name': model_name
+resp = requests.post(f"{api_base}/api/classify", json={
+    'text': queries
 })
 
 data = resp.json()
 if resp.status_code != 200:
-    log.error(f"Failed to deploy model: {data['error']}")
+    log.error(f"Failed to send query: {data['error']}")
     exit(1)
 
-assert(data['result'] == 'ok')
-
-log.info("Model deployed successfully")
+log.info(f"Response: {data['result']}")

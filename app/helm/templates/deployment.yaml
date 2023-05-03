@@ -35,6 +35,27 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - uwsgi
+            - --http
+            - 0.0.0.0:5000
+            - --thunder-lock
+            - --single-interpreter
+            - --enable-threads
+            - --processes=2
+            - --buffer-size=8192
+#            - --max-requests=1000
+            - --wsgi-file
+            - /app/app/wsgi.py
+            - --listen=100
+            - --log-x-forwarded-for
+            - --logformat
+            - >-
+              %(addr) - [%(ltime)|%(msecs) msec] "%(method) %(uri) %(proto)"
+              %(status) %(size) "%(referer)" "%(uagent)"
+            - --ignore-sigpipe
+            - --ignore-write-errors
+            - --disable-write-exception
           env:
             - name: DB_HOST
               valueFrom:

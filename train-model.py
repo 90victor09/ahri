@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import json
-from functools import partial
 import tempfile
+import sys
+from functools import partial
 
 from util.data import chunk_to_labelresult_pair, flatmap
 from util.imp_helper import create_model
@@ -12,8 +13,6 @@ from util import database
 if __name__ != '__main__':
     exit(1)
 
-import sys
-
 if len(sys.argv) < 3:
     print(f"{sys.argv[0]} MODEL_TYPE MODEL_NAME [dataset_version=0] [params]")
     exit(0)
@@ -22,6 +21,7 @@ model_type = sys.argv[1]
 model_name = sys.argv[2]
 dataset_version = None
 model_params = {}
+
 if len(sys.argv) > 3:
     dataset_version = int(sys.argv[3])
 
@@ -35,22 +35,22 @@ if len(sys.argv) > 4:
 log = getLogger(__name__)
 
 with database.connect() as conn:
-    classes = database.retrieve_classes(conn)
+    classes = database.classes.retrieve_classes(conn)
 
-    if not database.is_models_table_exists(conn):
-        database.create_models_table(conn)
+    if not database.models.is_models_table_exists(conn):
+        database.models.create_models_table(conn)
 
     model = create_model(model_type)
 
     if dataset_version is None:
         with conn.cursor() as cursor:
-            dataset_version = database.get_last_dataset_version(cursor)
+            dataset_version = database.dataset.get_last_dataset_version(cursor)
 
     trained_dataset_version = 1
-    current_dataset_version = database.get_model_dataset_version(conn, model_name)
+    current_dataset_version = database.models.get_model_dataset_version(conn, model_name)
     if current_dataset_version is not None:
         with tempfile.TemporaryFile('w+b') as fp:
-            trained_model_type, trained_dataset_version = database.retrieve_model(conn, model_name, fp, None)
+            trained_model_type, trained_dataset_version = database.models.retrieve_model(conn, model_name, fp, None)
             if model_type != trained_model_type:
                 log.error(f"Trained model has type {trained_model_type} != {model_type}")
                 exit(1)
@@ -67,7 +67,7 @@ with database.connect() as conn:
     X, y = [], []
     for dver in range(trained_dataset_version, dataset_version+1):
         log.info(f"Loading dataset version={dver}")
-        for _x, _y in map(partial(chunk_to_labelresult_pair, classes), flatmap(database.retrieve_data_chunks(conn, dver))):
+        for _x, _y in map(partial(chunk_to_labelresult_pair, classes), flatmap(database.dataset.retrieve_data_chunks(conn, dver))):
             X.append(_x)
             y.append(_y)
 
@@ -79,4 +79,4 @@ with database.connect() as conn:
     log.info(f"Saving model type={model_type} name={model_name}")
     with tempfile.TemporaryFile('w+b') as fp:
         model.save(fp)
-        database.save_model(conn, model_type, model_name, model_params, dataset_version, fp)
+        database.models.save_model(conn, model_type, model_name, model_params, dataset_version, fp)
