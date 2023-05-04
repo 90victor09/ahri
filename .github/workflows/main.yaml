@@ -106,7 +106,7 @@ jobs:
         run: |
           ./train-model.py ${{ matrix.model }}
 
-  select-model:
+  deploy-best-model:
     runs-on: ubuntu-22.04
 
     env:
@@ -135,7 +135,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
         run: |
-          ./select-model.py ${{ env.MODELS }} | tee /tmp/selection.out
+          ./select-model.py ${{ env.MODELS }} 2>&1 | tee /tmp/selection.out
 
       - name: Deploy model
         env:
