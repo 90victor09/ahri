@@ -107,7 +107,7 @@ jobs:
         run: |
           ./train-model.py ${{ matrix.model }}
           eval "array=(${{ matrix.model }})"
-          ./evaluate-model ${array[1]}
+          ./evaluate-model.py ${array[1]}
 
   deploy-best-model:
     runs-on: ubuntu-22.04
