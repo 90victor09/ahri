@@ -29,7 +29,7 @@ def save_metrics(conn, model_id, metrics_dict):
     with conn.cursor() as cursor:
         psycopg2.extras.execute_values(
             cursor,
-            f"INSERT INTO {METRICS_TABLE_NAME} (model_id, metircs) VALUES %s ON CONFLICT ON CONSTRAINT metrics_uniq DO UPDATE SET metrics = EXCLUDED.metrics;",
+            f"INSERT INTO {METRICS_TABLE_NAME} (model_id, metrics) VALUES %s ON CONFLICT ON CONSTRAINT metrics_uniq DO UPDATE SET metrics = EXCLUDED.metrics;",
             [(model_id, json.dumps(metrics_dict, sort_keys=True))]
         )
     conn.commit()
