@@ -35,39 +35,39 @@ jobs:
           name: source-dataset
           path: ./dataset.json
 
-  save-data:
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/90victor09/ahri/base:latest
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.github_token }}
-    needs: dataset
-    environment: ahri
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Download source dataset
-        uses: actions/download-artifact@v3
-        with:
-          name: source-dataset
-          path: ./
-
-      - name: Prepare data
-        run: |
-          ln -s /root/nltk_data /github/home/nltk_data 
-          ./prepare-data.py ./dataset.json ./output.json
-
-      - name: Upload data
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_DB: ${{ secrets.DB_DB }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-        run: |
-          ./save-data.py ./output.json
+#  save-data:
+#    runs-on: ubuntu-22.04
+#    container:
+#      image: ghcr.io/90victor09/ahri/base:latest
+#      credentials:
+#        username: ${{ github.actor }}
+#        password: ${{ secrets.github_token }}
+#    needs: dataset
+#    environment: ahri
+#
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Download source dataset
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: source-dataset
+#          path: ./
+#
+#      - name: Prepare data
+#        run: |
+#          ln -s /root/nltk_data /github/home/nltk_data
+#          ./prepare-data.py ./dataset.json ./output.json
+#
+#      - name: Upload data
+#        env:
+#          DB_HOST: ${{ secrets.DB_HOST }}
+#          DB_PORT: ${{ secrets.DB_PORT }}
+#          DB_DB: ${{ secrets.DB_DB }}
+#          DB_USER: ${{ secrets.DB_USER }}
+#          DB_PASS: ${{ secrets.DB_PASS }}
+#        run: |
+#          ./save-data.py ./output.json
 
   train-models:
     runs-on: ubuntu-22.04
@@ -76,7 +76,7 @@ jobs:
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.github_token }}
-    needs: save-data
+    #needs: save-data
     environment: ahri
 
     strategy:
