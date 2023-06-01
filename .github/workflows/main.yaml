@@ -105,7 +105,10 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
         shell: bash
         run: |
+          echo "Started training model"
           ./train-model.py ${{ matrix.model }}
+
+          echo "Started model versions evaluation"
           eval "array=(${{ matrix.model }})"
           ./evaluate-model.py ${array[1]}
 

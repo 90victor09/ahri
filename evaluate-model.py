@@ -77,8 +77,7 @@ with database.connect() as conn:
                     scores[name] = scorer(y_true, y_pred)
 
                 log.info(f"Model {model_name} (model_id = {model_id}, version {dataset_version}), time: {dur}, scores: {scores}")
-                model_scores[model_id] = model_scores.get(model_id, {})
-                model_scores[model_id][dataset_version] = scores
+                model_scores[model_id] = scores
 
         if model_scores.get(model_id, None):
             database.metrics.save_metrics(conn, model_id, model_scores[model_id])
