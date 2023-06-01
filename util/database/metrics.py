@@ -16,7 +16,7 @@ def create_metrics_table(conn):
     with conn.cursor() as cursor:
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {METRICS_TABLE_NAME} (
-                id bigint NOT NULL PRIMARY KEY,
+                id bigserial NOT NULL PRIMARY KEY,
                 model_id BIGINT NOT NULL REFERENCES models(id),
                 metrics TEXT NOT NULL,
                 CONSTRAINT metrics_uniq UNIQUE (model_id)
