@@ -29,7 +29,7 @@ with database.connect() as conn:
         versions = database.models.get_model_versions_with_model_ids(conn, model_name)
         metrics = database.metrics.retrieve_metrics(conn, list(versions.keys()))
 
-        for model_id, dataset_version in versions.items():
+        for dataset_version, model_id in versions.items():
             if not metrics.get(model_id, None):
                 log.info(f'No metrics for model_id={model_id} name={model_name} - skip.')
                 continue
