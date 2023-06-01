@@ -6,6 +6,7 @@ from . import classes
 from . import dataset
 from . import models
 from . import settings
+from . import metrics
 from .util import is_table_exists
 
 

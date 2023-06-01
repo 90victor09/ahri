@@ -5,7 +5,7 @@ from .util import is_table_exists
 
 SETTINGS_TABLE_NAME = 'settings'
 
-DEPLOYED_MODEL_NAME_KEY = 'deployed_model'
+DEPLOYED_MODEL_ID_KEY = 'deployed_model_id'
 
 
 def is_settings_table_exists(conn):

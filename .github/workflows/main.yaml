@@ -105,6 +105,8 @@ jobs:
           DB_PASS: ${{ secrets.DB_PASS }}
         run: |
           ./train-model.py ${{ matrix.model }}
+          eval "array=(${{ matrix.model }})"
+          ./evaluate-model ${array[1]}
 
   deploy-best-model:
     runs-on: ubuntu-22.04
@@ -142,5 +144,5 @@ jobs:
           APP_API_BASE: ${{ secrets.APP_API_BASE }}
           APP_API_KEY: ${{ secrets.APP_API_KEY }}
         run: |
-          MODEL=$(cat /tmp/selection.out | tail -n1 | grep -oP "Best model: \K(.+)$")
+          MODEL=$(cat /tmp/selection.out | tail -n1 | grep -oP "Best model id: \K(.+)$")
           ./deploy-model.py $MODEL

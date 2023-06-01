@@ -50,7 +50,7 @@ with database.connect() as conn:
     current_dataset_version = database.models.get_model_dataset_version(conn, model_name)
     if current_dataset_version is not None:
         with tempfile.TemporaryFile('w+b') as fp:
-            trained_model_type, trained_dataset_version = database.models.retrieve_model(conn, model_name, fp, None)
+            trained_model_type, trained_dataset_version, _ = database.models.retrieve_model(conn, model_name, fp, None)
             if model_type != trained_model_type:
                 log.error(f"Trained model has type {trained_model_type} != {model_type}")
                 exit(1)

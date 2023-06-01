@@ -29,11 +29,11 @@ if len(sys.argv) < 2:
 api_base = os.environ['APP_API_BASE'].rstrip('/')
 api_key = os.environ['APP_API_KEY']
 
-model_name = sys.argv[1]
+model_id = sys.argv[1]
 
 resp = requests.post(f"{api_base}/api/models/load", params={
     'api_key': api_key,
-    'model_name': model_name
+    'model_id': model_id
 })
 
 data = resp.json()
