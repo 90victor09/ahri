@@ -103,6 +103,7 @@ jobs:
           DB_DB: ${{ secrets.DB_DB }}
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
+        shell: bash
         run: |
           ./train-model.py ${{ matrix.model }}
           eval "array=(${{ matrix.model }})"
